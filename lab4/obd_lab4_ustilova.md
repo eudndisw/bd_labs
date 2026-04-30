@@ -22,15 +22,7 @@ FROM Books;
 ```
 ![Результат запиту 2](lab4_2.png)
  
-
-```sql 
--- Середня кількість доступних книг
-SELECT AVG(available_copies) AS avg_available
-FROM Books;
-```
-![Результат запиту 3](lab4_3.png)
  
-
 ```sql 
 -- Найпізніша дата реєстрації студента
 SELECT MAX(registration_date) AS last_registered_student
