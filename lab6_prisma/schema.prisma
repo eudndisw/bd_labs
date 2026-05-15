@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model authors {
+  author_id    Int            @id @default(autoincrement())
+  full_name    String         @db.VarChar(100)
+  book_authors book_authors[]
+}
+
+model book_authors {
+  book_id   Int
+  author_id Int
+  authors   authors @relation(fields: [author_id], references: [author_id], onDelete: NoAction, onUpdate: NoAction)
+  books     books   @relation(fields: [book_id], references: [book_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([book_id, author_id])
+}
+
+model books {
+  book_id          Int            @id @default(autoincrement())
+  title            String         @db.VarChar(255)
+  isbn             String?        @unique @db.VarChar(20)
+  publish_year     Int?
+  publisher_id     Int?
+  category_id      Int?
+  total_copies     Int?           @default(1)
+  available_copies Int?           @default(1)
+  book_authors     book_authors[]
+  categories       categories?    @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction)
+  publishers       publishers?    @relation(fields: [publisher_id], references: [publisher_id], onDelete: NoAction, onUpdate: NoAction)
+  loan_details     loan_details[]
+  reservations Reservation[]
+}
+
+model categories {
+  category_id Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  books       books[]
+}
+
+model faculties {
+  faculty_id Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  groups     groups[]
+}
+
+model fines {
+  fine_id Int      @id @default(autoincrement())
+  loan_id Int?
+  amount  Decimal? @db.Decimal(10, 2)
+  paid    Boolean? @default(false)
+  loans   loans?   @relation(fields: [loan_id], references: [loan_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model groups {
+  group_id   Int        @id @default(autoincrement())
+  name       String     @db.VarChar(50)
+  faculty_id Int?
+  faculties  faculties? @relation(fields: [faculty_id], references: [faculty_id], onDelete: NoAction, onUpdate: NoAction)
+  students   students[]
+}
+
+model loan_details {
+  loan_id  Int
+  book_id  Int
+  quantity Int?  @default(1)
+  books    books @relation(fields: [book_id], references: [book_id], onDelete: NoAction, onUpdate: NoAction)
+  loans    loans @relation(fields: [loan_id], references: [loan_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([loan_id, book_id])
+}
+
+model loans {
+  loan_id      Int            @id @default(autoincrement())
+  student_id   Int?
+  loan_date    DateTime       @db.Date
+  due_date     DateTime       @db.Date
+  return_date  DateTime?      @db.Date
+  fines        fines[]
+  loan_details loan_details[]
+  students     students?      @relation(fields: [student_id], references: [student_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model publishers {
+  publisher_id Int     @id @default(autoincrement())
+  name         String  @db.VarChar(100)
+  books        books[]
+}
+
+model students {
+  student_id        Int       @id @default(autoincrement())
+  full_name         String    @db.VarChar(100)
+  student_card      String    @unique @db.VarChar(20)
+  email             String?   @db.VarChar(100)
+  group_id          Int?
+  registration_date DateTime? @db.Date
+  birth_date        DateTime? @db.Date
+  loans             loans[]
+  groups            groups?   @relation(fields: [group_id], references: [group_id], onDelete: NoAction, onUpdate: NoAction)
+  reservations      Reservation[]
+}
+
+
+model Reservation {
+  reservation_id   Int      @id @default(autoincrement())
+  student_id       Int
+  book_id          Int
+  reservation_date DateTime @default(now())
+  status           String   @default("active")
+
+  students students @relation(fields: [student_id], references: [student_id])
+  books    books   @relation(fields: [book_id], references: [book_id])
+
+  @@unique([student_id, book_id])
+}
+
